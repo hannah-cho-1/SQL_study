@@ -1,0 +1,48 @@
+# 1. Basic Data Exploration
+# Display the first names, last names, and emails of all customers.
+
+SELECT first_name, last_name, email
+FROM Customers ;
+
+# Display the names and join dates of customers who joined in 2024.
+
+SELECT first_name, last_name, join_date
+FROM Customers
+WHERE join_date > '2024-01-01'; 
+
+# 2. Sales Data Analysis
+# Display the order ID, order date, and total amount for all orders.
+
+SELECT order_id, order_date, total_amount
+FROM Orders;
+
+# Display orders with a total amount of $100 or more.
+
+SELECT order_id, order_date, total_amount
+FROM Orders
+WHERE total_amount >= 100;
+
+#3. Product Data Exploration
+# Display the names and prices of all products.
+
+SELECT product_name, price
+FROM Products;
+
+# Display products with a price of $50 or more.
+
+SELECT product_name, price
+FROM Products
+WHERE price >= 50;
+
+# 4. Filtering Data by Specific Conditions
+# Display the names and prices of products in the "Electronics" category.
+
+SELECT product_name, price
+FROM Products
+WHERE category = 'Electronics';
+
+# Display the order ID, order date, and total amount for orders placed after "2024-01-01".
+
+SELECT order_id, order_date, total_amount
+FROM Orders
+WHERE order_date > '2024-01-01';
