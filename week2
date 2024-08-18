@@ -1,0 +1,51 @@
+-- Tasks (MUST-DO): 
+  -- 1. Data Manipulation
+    -- 1) Insert a New Movie: Add a new movie titled "A New Dawn," released in 2023, with a genre of "Drama." Set an initial average rating of 8.2.
+            
+            INSERT INTO MOVIES (movie_id, title, release_year, genre_id, rating)
+            VALUES 
+              (106 ,'A New Dawn', 2023, 3, 8.2);
+
+  -- 2. Aggregation Functions: 
+    -- 1) Total Viewing Hours by Genre: Calculate the total viewing hours for each genre.
+
+            SELECT g.name AS genre, SUM (duration)
+            FROM Movies m
+            JOIN  Viewership  v
+            	ON m.movie_id = v.movie_id 
+            JOIN Genres g
+            	ON g.genre_id =  m.genre_id
+            GROUP BY genre 
+
+    -- 2) Average Rating by Genre: Find the average rating for movies in each genre.
+
+            SELECT g.name AS genre, AVG (rating)
+            FROM Movies m
+            JOIN  Viewership  v
+            	ON m.movie_id = v.movie_id 
+            JOIN Genres g
+            	ON g.genre_id =  m.genre_id
+            GROUP BY genre 
+
+  -- 3. Group By and Having Clauses:
+    -- 1) Genres with High Average Rating: List genres where the average rating of movies is above 7.5.
+
+            SELECT g.name AS genre, AVG (rating)
+            FROM Movies m
+            JOIN  Viewership  v
+            	ON m.movie_id = v.movie_id 
+            JOIN Genres g
+            	ON g.genre_id =  m.genre_id
+            GROUP BY genre 
+            HAVING AVG (rating) > 7.5;
+
+    -- 2) Genres with High Viewing Hours: Identify genres where the total viewing hours exceed 5000 minutes.
+
+
+
+
+
+
+  -- 4. Join Operation:
+    -- 1) Movies by Genre:** Retrieve a list of genres and the count of movies in each genre.
+    -- 2) Average Viewing Duration by User:** Find the average viewing duration for each user.
