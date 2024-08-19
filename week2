@@ -1,10 +1,10 @@
--- Tasks (MUST-DO): 
+### Tasks (MUST-DO): 
   -- 1. Data Manipulation
     -- 1) Insert a New Movie: Add a new movie titled "A New Dawn," released in 2023, with a genre of "Drama." Set an initial average rating of 8.2.
             
             INSERT INTO MOVIES (movie_id, title, release_year, genre_id, rating)
             VALUES 
-              (106 ,'A New Dawn', 2023, 3, 8.2);
+              (106,'A New Dawn', 2023, 3, 8.2);
 
   -- 2. Aggregation Functions: 
     -- 1) Total Viewing Hours by Genre: Calculate the total viewing hours for each genre.
@@ -41,11 +41,154 @@
 
     -- 2) Genres with High Viewing Hours: Identify genres where the total viewing hours exceed 5000 minutes.
 
-
-
-
-
+            SELECT g.name AS genre, SUM (duration)
+            FROM Movies m
+            JOIN  Viewership  v
+            	ON m.movie_id = v.movie_id 
+            JOIN Genres g
+            	ON g.genre_id =  m.genre_id
+            GROUP BY genre 
+            HAVING SUM (duration) > 5000;
 
   -- 4. Join Operation:
-    -- 1) Movies by Genre:** Retrieve a list of genres and the count of movies in each genre.
-    -- 2) Average Viewing Duration by User:** Find the average viewing duration for each user.
+    -- 1) Movies by Genre: Retrieve a list of genres and the count of movies in each genre.
+
+            SELECT g.name AS genre, COUNT (title)
+            FROM Movies m
+            JOIN Genres g
+              ON g.genre_id =  m.genre_id
+            GROUP BY genre ;
+
+    -- 2) Average Viewing Duration by User: Find the average viewing duration for each user.
+
+            SELECT user_id, AVG (duration)
+            FROM Viewership
+            GROUP BY user_id;
+
+
+
+### Advanced Tasks:
+
+  -- 1. Top Rated Movies by Viewership:**
+    -- Create a query that lists the top 10 movies by viewership duration in the last year, along with their average ratings and the total number of unique viewers. 
+      Order the results by viewership duration in descending order.
+
+      SELECT m.title, SUM(v.duration), AVG(m.rating), COUNT(v.user_id)
+      FROM  Movies m
+      JOIN  Viewership v
+      	ON 	m.movie_id = v.movie_id
+      JOIN  Reviews r
+      	ON  m.movie_id = v.movie_id
+      WHERE view_date < '2024-01-01' 
+      	AND view_date >= '2023-01-01'
+      GROUP BY m.movie_id
+      ORDER BY duration DESC
+      LIMIT 10;
+
+
+  -- 2. User Retention Analysis: ** EXECUTION FAILED ** 
+    -- Determine the average number of movies viewed per month by users in each subscription type. 
+      Identify any significant differences in engagement across the different subscription types over the last year.
+
+      SELECT u.subscription_type, AVG(movie_id)
+      FROM Movies m
+      JOIN Viewership v
+      	ON	 m.movie_id = v.movie_id
+      JOIN Users u
+      	ON v.user_id = u.user_id
+      GROUP BY u.subscription_type; 
+
+
+  -- 3. Content Optimization:
+    -- For each genre, identify the movie with the highest average rating and the longest viewership duration. 
+      Combine this data to recommend which genres the streaming service should focus on acquiring more content for.
+
+      SELECT 
+      	m.title, 
+      	g.name AS genre, 
+      	MAX(m.rating) AS highest_average_rating, 
+      	MAX(v.duration) AS longest_viewership_duration
+      FROM Movies m
+      JOIN Viewership v
+      	ON	 m.movie_id = v.movie_id
+      JOIN Genres g
+      	ON m.genre_id = g.genre_id
+      GROUP BY g.genre_id
+      ORDER BY highest_average_rating DESC;
+
+      >> The result displays that action has the highest average rating as well as the longest viewership duration.
+         It is advised to acquire action films/series to satisfy the audiences. 
+
+
+  -- 4. Correlating Ratings and Viewership:
+    -- Analyze if there is a correlation between user ratings and viewership duration. 
+      Provide a summary table that shows the average viewership duration for movies grouped by their rating (e.g., 0-2, 2-4, 4-6, 6-8, 8-10).
+
+      SELECT 
+      	m.rating,
+      	AVG(v.duration) AS average_viewership_duration,
+      	 CASE
+           WHEN m.rating < 2 THEN '0-2'
+           WHEN m.rating < 4  AND m.rating >= 2 THEN '2-4'
+        	 WHEN m.rating < 6 AND m.rating >= 4  THEN '4-6'
+        	 WHEN m.rating < 8 AND m.rating >= 6  THEN '6-8'
+        	 WHEN m.rating <= 10 AND m.rating >= 8  THEN '8-10'
+           END AS rating_group
+      FROM Movies m
+      JOIN Viewership v
+      	ON m.movie_id = v.movie_id;
+
+
+  -- 5. User Clustering by Viewing Habits:
+    -- Identify clusters of users based on their most-viewed genres and average viewership duration. 
+      Provide a summary that includes the number of users in each cluster and the average number of movies watched.
+
+        SELECT 
+        	g.name, 
+        	COUNT(g.name),
+        	AVG(v.duration) AS average_viewership_duration
+        FROM Movies m
+        JOIN Viewership v
+        	ON m.movie_id = v.movie_id
+        JOIN Genres g
+        	ON m.genre_id = g.genre_id
+        GROUP BY g.name
+        ORDER BY COUNT(g.name) DESC;
+
+       >> Each genre was watched once by users in this dataset, therefore it cannot be determined which genre is popular, 
+          while action has the highest average viewership duration, followed by drama, Sci-fi, horror and comedy in order. 
+
+
+  -- 6. Subscription Upgrade Impact:
+    -- Analyze the impact of upgrading “Basic” subscription users to “Standard.” 
+      Compare the average viewership duration and the number of movies viewed before and after the upgrade for these users.
+
+        Identify 'Basic' plan users' pattern: 
+          SELECT 
+          	COUNT(m.movie_id) AS number_of_movies_viewed ,
+          	AVG(v.duration) AS average_viewership_duration
+          FROM Viewership v
+          JOIN Movies m
+          	ON v.movie_id = m.movie_id 
+          JOIN Users u
+          	ON v.user_id = u.user_id
+          WHERE u.subscription_type = 'Basic';
+
+         Identify 'Standard' plan users' pattern: 
+          SELECT 
+          	COUNT(m.movie_id) AS number_of_movies_viewed ,
+          	AVG(v.duration) AS average_viewership_duration
+          FROM Viewership v
+          JOIN Movies m
+          	ON v.movie_id = m.movie_id 
+          JOIN Users u
+          	ON v.user_id = u.user_id
+          WHERE u.subscription_type = 'Standard';
+
+>> 'Basic' plan subscribers watched one film and the average viewership duration was 142. 
+    For the standard plan users, they watched two films with 125.5 of the average viewership duration. 
+    It can be seen that people with an upgraded plan tend to watch more films, even though the average viewership duration could be decreased. 
+
+
+
+
