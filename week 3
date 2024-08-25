@@ -1,0 +1,93 @@
+
+** EXECUTION FAILED ** 
+1. Analyzing Customer Enrollment in the Loyalty Program:
+- Task:Identify customers who joined the loyalty program within six months of their first purchase.
+    
+  SELECT c.customer_id, c.first_name, c.last_name
+  FROM Customers c
+  JOIN Purchases p
+  	ON c.customer_id = p.customer_id 
+  JOIN Loyalty_Program lp
+  	ON c.customer_id = lp.customer_id
+  WHERE lp.enrollment_date <= DATE_ADD(p.purchase_date, INTERVAL 6 MONTH);
+
+
+2. Store Sales Performance Analysis:
+- Task: Calculate the total sales for each store, including stores with no sales (show stores with zero sales as well).
+
+  WITH store_cte AS (
+	  SELECT * 
+	  FROM Store_Locations 
+	  GROUP BY store_id
+	)
+	
+  SELECT sc.store_name, SUM(p.amount) AS total_sales 
+  FROM store_cte sc
+  LEFT JOIN Purchases p
+	  ON  sc.store_id = p.store_id
+  GROUP BY sc.store_id;
+
+
+3. Identifying Top-Selling Products in Each Category:
+- Task: For each product category, identify the product with the highest total sales.
+
+  WITH product_cte AS (
+	  SELECT *
+	  FROM Products
+	  GROUP BY category 
+	)
+	
+ SELECT product_name, category, MAX (price)
+ FROM product_cte
+ GROUP BY category; 
+
+
+4. Customer Spending Behavior:
+- Task:Identify customers who spent more than $1000 across multiple purchases but are not enrolled in the loyalty program.
+
+SELECT c.first_name, c.last_name 
+FROM Customers c 
+JOIN Purchases p
+  ON c.customer_id = p.customer_id 
+LEFT JOIN Loyalty_Program lp
+  ON c.customer_id = lp.customer_id
+GROUP BY c.customer_id
+HAVING SUM(p.amount) > 1000 
+	AND lp.customer_id IS NULL; 
+
+
+** GOT HELP FROM CHATGPT DUE TO UNUSED SUBQUERY WRITING ** 
+5. Customer Purchase Frequency:
+- Task: Determine the average number of purchases made by customers in the loyalty program versus those who are not enrolled.
+
+SELECT 
+    enrollment_status,
+    AVG(purchase_count) AS average_purchases
+FROM (
+    SELECT 
+        c.customer_id,
+        COUNT(p.purchase_id) AS purchase_count,
+        CASE 
+            WHEN lp.customer_id IS NOT NULL THEN 'Enrolled'
+            ELSE 'Not Enrolled'
+        END AS enrollment_status
+    FROM 
+        Customers c
+    LEFT JOIN 
+        Purchases p ON c.customer_id = p.customer_id
+    LEFT JOIN 
+        Loyalty_Program lp ON c.customer_id = lp.customer_id
+    GROUP BY 
+        c.customer_id, lp.customer_id
+) AS customer_purchase_counts
+GROUP BY 
+    enrollment_status;
+
+
+6. Cross-Sell Opportunities:
+- Task: Identify products that are frequently purchased together (by the same customer within a short time frame).
+
+> How to define "frequently purchased together"? 
+
+
+
