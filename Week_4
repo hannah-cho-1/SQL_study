@@ -1,0 +1,95 @@
+1. Sales Trend Analysis:
+
+- Task: Calculate the 7-day moving average of daily sales to smooth out fluctuations and identify underlying trends in sales data.
+    - Data: Use the `Sales` table, which contains daily sales data (`sale_date`, `total_sales`).
+    - Goal: Identify periods of significant growth or decline in sales.
+
+        SELECT 
+        	sale_date,
+        	sales_amount,
+        	AVG(sales_amount) 
+        		OVER (ORDER BY sale_date ASC ROWS 6 PRECEDING) AS moving_Avg
+        FROM Sales 
+        ORDER BY sale_date 	 
+
+      >> The sales trends in the beginning showed to increase, around 900, while there was a dramatic drop on the 10th of February by 785.
+         However, the trends recovers quickly back to 900, and finally reached over 1000 on the 15th March. 
+
+
+
+** I belive there is another way to prsent the result in a btter way ** 
+2. Customer Purchase Behavior:
+
+- Task: Determine the average order value (AOV) for each customer segment (e.g., "Regular", "VIP") over the last quarter and compare it with the previous quarter.
+    - Data: Use the `Orders` and `Customers` tables. `Orders` contains order data (`order_id`, `customer_id`, `order_value`, `order_date`), and `Customers` contains customer data (`customer_id`, `segment`).
+    - Goal: Assess whether there’s an increase or decrease in AOV across segments.
+
+
+      CREATE VIEW CustomerOrders AS
+      SELECT *
+      FROM Customers c
+      JOIN Orders o
+      	ON c.customer_id = o.customer_id;
+      
+      SELECT * FROM CustomerOrders ;
+      
+      SELECT segment, 
+      	AVG(order_value) OVER (PARTITION BY segment) AS average_order_value 
+      FROM CustomerOrders 
+      WHERE order_date >= '2023-07-01' AND 
+      				  order_date <= '2023-09-30'; 
+      				  
+      SELECT segment, 
+      	AVG(order_value) OVER (PARTITION BY segment) AS average_order_value 
+      FROM CustomerOrders 
+      WHERE order_date >= '2023-10-01' AND 
+      				  order_date <= '2023-12-31'; 
+
+
+      >> In terms of the regualr customers, their average order value was dramatically increased, from 466 to 850, 
+         whereas VIP's average order value dropped from 833 to 650. 
+
+
+** DOES NOT SHOW THE RESULT AS EXPECTED ** 
+3. Product Category Performance:
+
+- Task: Rank product categories based on their sales performance within each region over the past year.
+    - Data: Use the `Sales` table, which contains sales data (`sale_id`, `category`, `region`, `sales_amount`, `sale_date`).
+    - Goal: Identify top-performing categories in each region and provide recommendations for inventory management.
+
+         SELECT region, category,SUM (sales_amount),
+          	RANK () OVER (PARTITION BY region ORDER BY sales_amount DESC ) AS order_rank
+        FROM SALES
+        WHERE sale_date >= '2023-01-01'
+          	AND sale_date <= '2023-12-31' 
+			  GROUP BY 	category ;
+
+
+** NO IDEA A) TO WRITE A QUERY TO GROUP BY MONTH; B) EVEN THIS QUERY DOES NOT WORK TO SHOW THE SUMS BY CATEGORY ** 
+4. Creating and Using Views for Reusable Analysis
+
+- Task: Create a view that summarizes monthly sales by product category. Use this view to analyze the top-performing categories across all regions.
+    - Data: Use the `Sales` table.
+    - Goal: Simplify repetitive queries and enable more efficient analysis.
+
+        CREATE VIEW Summary_monthly_sales AS
+        
+        SELECT category, 
+        	SUM(sales_amount) OVER (PARTITION BY category) AS montly_sales_amount
+        FROM Sales 
+        GROUP BY category; 
+
+
+
+5. Time Series Analysis Using Window Functions
+
+- Task: Perform a time series analysis to calculate the cumulative sales for each product category over time.
+    - Data: Use the `Sales` table.
+    - Goal: Identify categories with sustained growth and those with declining sales.
+
+  SELECT category, sales_amount,
+	      SUM (sales_amount) OVER (PARTITION BY category ORDER BY sale_date) AS cumulative_sum
+  FROM Sales ; 
+
+
+
